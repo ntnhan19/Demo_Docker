@@ -1,0 +1,28 @@
+services:
+  app-java:                      # Tên dịch vụ tự đặt
+    build: .                     # Tìm Dockerfile ở thư mục hiện tại để build
+    ports:
+      - "8080:8080"              # Mở cổng cho sinh viên truy cập localhost:8080
+    depends_on:
+      - db-sqlserver             # Chờ DB sẵn sàng rồi mới chạy App
+    environment:
+      # Các biến chuẩn Spring Boot để tạo DataSource
+      SPRING_DATASOURCE_URL: jdbc:sqlserver://db-sqlserver:1433;databaseName=demo_docker_db;encrypt=true;trustServerCertificate=true
+      SPRING_DATASOURCE_USERNAME: sa
+      SPRING_DATASOURCE_PASSWORD: SqlServer@123
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.microsoft.sqlserver.jdbc.SQLServerDriver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+
+  db-sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest  # Tải thẳng image từ Docker Hub
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: SqlServer@123
+      MSSQL_PID: Express
+    ports:
+      - "1433:1433"
+    volumes:
+      - db_data:/var/opt/mssql   # Dữ liệu DB không bị mất khi xóa container
+
+volumes:
+  db_data:                       # Khai báo volume dùng chung
