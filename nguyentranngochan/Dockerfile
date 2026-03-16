@@ -5,7 +5,7 @@ WORKDIR /app
 
 # Copy pom.xml trước để cache dependencies (tránh tải lại khi code thay đổi)
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
+RUN mvn dependency:resolve -B
 
 # Copy source code và biên dịch thành file .jar (bỏ qua chạy thử test để build nhanh)
 COPY src ./src

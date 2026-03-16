@@ -1,0 +1,65 @@
+services:
+
+  # CONTAINER 1: MySQL Database
+  db-mysql:
+    image: ntnhan1801/portfolio-database:latest
+    container_name: db-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: MySQL@123
+      MYSQL_DATABASE: portfolio_db
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pMySQL@123"]
+      interval: 10s
+      retries: 10
+      start_period: 30s
+      timeout: 5s
+    networks:
+      - portfolio-net
+
+  # CONTAINER 2: Spring Boot Backend
+  app-backend:
+    build: ./nguyentranngochan
+    container_name: app-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      db-mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db-mysql:3306/portfolio_db?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: MySQL@123
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/profile || exit 1"]
+      interval: 20s
+      retries: 5
+      start_period: 90s
+      timeout: 10s
+    networks:
+      - portfolio-net
+
+  # CONTAINER 3: React Frontend (Nginx)
+  app-frontend:
+    build: ./frontend
+    container_name: app-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      app-backend:
+        condition: service_healthy
+    networks:
+      - portfolio-net
+
+volumes:
+  db_data:
+
+networks:
+  portfolio-net:
+    driver: bridge
