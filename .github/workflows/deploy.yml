@@ -22,19 +22,19 @@ jobs:
       - name: Bước 3 - Pull MySQL và Push lên Docker Hub
         run: |
           docker pull mysql:8.0
-          docker tag mysql:8.0 ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-database:latest
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-database:latest
+          docker tag mysql:8.0 ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-database:1.1
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-database:1.1
 
       - name: Bước 4 - Build và Push Backend image
         uses: docker/build-push-action@v5
         with:
           context: ./nguyentranngochan
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend:1.1
 
       - name: Bước 5 - Build và Push Frontend image
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-frontend:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-frontend:1.1
