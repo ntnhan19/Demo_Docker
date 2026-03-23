@@ -1,4 +1,4 @@
-name: Build, Push and Deploy
+name: Build and Push Docker Images
 
 on:
   push:
@@ -6,29 +6,29 @@ on:
       - main
 
 jobs:
-  build-push-deploy:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
+      # Bước 1 - Checkout code
       - name: Bước 1 - Tải code từ GitHub
         uses: actions/checkout@v3
 
-      # 2. Login Docker Hub
+      # Bước 2 - Login Docker Hub
       - name: Bước 2 - Đăng nhập Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 3. Push MySQL image
+      # Bước 3 - Push MySQL
       - name: Bước 3 - Push MySQL image
         run: |
           docker pull mysql:8.0
           docker tag mysql:8.0 ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-database:1.1
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-database:1.1
 
-      # 4. Build & Push Backend
+      # Bước 4 - Build & Push Backend
       - name: Bước 4 - Build và Push Backend
         uses: docker/build-push-action@v5
         with:
@@ -36,7 +36,7 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend:1.1
 
-      # 5. Build & Push Frontend
+      # Bước 5 - Build & Push Frontend
       - name: Bước 5 - Build và Push Frontend
         uses: docker/build-push-action@v5
         with:
@@ -44,10 +44,10 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-frontend:1.1
 
-      # 6. Deploy (DevOps Classroom)
-      - name: Bước 6 - Deploy lên server
+      # Bước 6 - Deploy Frontend
+      - name: Triển khai lên DevOps Classroom (Frontend)
         run: |
-          REPO="${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend"
+          REPO="${{ secrets.DOCKERHUB_USERNAME }}/portfolio-frontend"
           RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=1.1")
 
           BODY=$(echo "$RESPONSE" | sed '$d')
@@ -56,9 +56,14 @@ jobs:
           echo "Webhook HTTP: $CODE"
 
           if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
-            echo "❌ Deploy thất bại"
-            echo "$BODY"
+            echo "Deploy thất bại. Xem chi tiết trong nhóm log bên dưới."
+            echo "::group::Chi tiết webhook JSON"
+            echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+            echo "::endgroup::"
             exit 1
           fi
 
-          echo "✅ Deploy thành công"
+          echo "Deploy thành công."
+          echo "::group::Chi tiết webhook JSON"
+          echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+          echo "::endgroup::"
