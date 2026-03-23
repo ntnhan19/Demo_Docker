@@ -47,8 +47,8 @@ jobs:
       # Bước 6 - Deploy Backend
       - name: Triển khai lên DevOps Classroom
         run: |
-          REPO="${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend"
-          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "${{ secrets.DEPLOY_URL }}?repo=$REPO&tag=1.1")
+          REPO="${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend:1.1"
+          RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "${{ secrets.DEPLOY_URL }}?repo=$REPO")
 
           BODY=$(echo "$RESPONSE" | sed '$d')
           CODE=$(echo "$RESPONSE" | tail -n1)
@@ -56,14 +56,14 @@ jobs:
           echo "Webhook HTTP: $CODE"
 
           if [ "$CODE" -lt 200 ] || [ "$CODE" -ge 300 ]; then
-            echo "Deploy thất bại. Xem chi tiết bên dưới."
+            echo "❌ Deploy thất bại"
             echo "::group::Chi tiết webhook JSON"
             echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
             echo "::endgroup::"
             exit 1
           fi
 
-          echo "Deploy thành công"
+          echo "✅ Deploy thành công"
           echo "::group::Chi tiết webhook JSON"
           echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
           echo "::endgroup::"
