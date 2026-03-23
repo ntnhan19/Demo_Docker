@@ -46,26 +46,21 @@ jobs:
 
       # Bước 6 - Deploy Backend
       - name: Triển khai lên DevOps Classroom
+        timeout-minutes: 10
         run: |
           REPO="${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend"
-          DEPLOY_URL="${{ secrets.DEPLOY_URL }}"
           
-          echo "🚀 Đang gọi webhook: $DEPLOY_URL"
-          echo "📦 Repo: $REPO"
-          
-          # Dùng --max-time để tránh hang, bỏ -sS để thấy lỗi rõ hơn
-          HTTP_CODE=$(curl -v --max-time 30 -o /tmp/response_body.txt \
+          HTTP_CODE=$(curl --max-time 300 --connect-timeout 10 \
+            -o /tmp/response_body.txt \
             -w "%{http_code}" \
-            -X POST "$DEPLOY_URL" \
+            -X POST "${{ secrets.DEPLOY_URL }}" \
             -H "Content-Type: application/json" \
             -d "{\"repo\":\"$REPO\"}")
           
-          echo "Webhook HTTP: $HTTP_CODE"
-          echo "Response body:"
+          echo "HTTP: $HTTP_CODE"
           cat /tmp/response_body.txt || echo "(empty)"
           
           if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
-            echo "❌ Deploy thất bại với HTTP $HTTP_CODE"
             exit 1
           fi
           echo "✅ Deploy thành công"
