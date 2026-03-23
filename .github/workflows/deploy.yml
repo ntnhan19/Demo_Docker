@@ -25,29 +25,29 @@ jobs:
       - name: Bước 3 - Push MySQL image
         run: |
           docker pull mysql:8.0
-          docker tag mysql:8.0 ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-database:1.1
-          docker push ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-database:1.1
+          docker tag mysql:8.0 ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-database:latest
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-database:latest
 
-      # Bước 4 - Build & Push Backend
+      # Bước 4 - Build & Push Backend (QUAN TRỌNG: dùng latest)
       - name: Bước 4 - Build và Push Backend
         uses: docker/build-push-action@v5
         with:
           context: ./nguyentranngochan
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend:1.1
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend:latest
 
-      # Bước 5 - Build & Push Frontend
+      # Bước 5 - Build & Push Frontend (giữ cho đúng bài)
       - name: Bước 5 - Build và Push Frontend
         uses: docker/build-push-action@v5
         with:
           context: ./frontend
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-frontend:1.1
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/portfolio-frontend:latest
 
-      # Bước 6 - Deploy Backend
+      # Bước 6 - Deploy Backend (FIX CHUẨN)
       - name: Triển khai lên DevOps Classroom
         run: |
-          REPO="${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend:1.1"
+          REPO="${{ secrets.DOCKERHUB_USERNAME }}/portfolio-backend"
           RESPONSE=$(curl -sS -w "\n%{http_code}" -X POST "${{ secrets.DEPLOY_URL }}?repo=$REPO")
 
           BODY=$(echo "$RESPONSE" | sed '$d')
